@@ -6,7 +6,16 @@ from box import Box, Bin
 from bounds.zero import bound_zero
 from bounds.first import bound_one, bound_one_x
 from bounds.second import bound_two, bound_two_x
+
 from utils import choose_boxes, rotate_problem
+
+from fits.core import fits2, fits2p, fits3
+
+from general.core import DomainPair
+from general.domain import modifyandpush, popdomains
+
+from variables import *
+from inspect import stack
 
 class Initial:
     def setUp(self):
@@ -54,3 +63,49 @@ class TestUtils(Initial, TestCase):
         print 'Rotate problem'
         pprint(self.bin)
         pprint(self.boxes)
+
+class TestFits(TestCase):
+    def setUp(self):
+        self.bin = Box(10, 10, 10)
+        
+        for attr in ['ibox', 'jbox', 'kbox']:
+            dimentions = random.sample(range(1, 5), 3)
+            box = Box(*dimentions)
+            setattr(self, attr, box)
+            
+    def test_fits2(self):
+        print fits2(
+            self.ibox, self.jbox, \
+            self.bin.w, self.bin.h, self.bin.d), \
+            self.ibox, self.jbox
+        
+    def test_fits3(self):
+        print fits3(
+            self.ibox, self.jbox, self.kbox, \
+            self.bin.w, self.bin.h, self.bin.d, \
+            GENERAL), \
+            self.ibox, self.jbox, self.kbox
+        
+class TestDomain(TestCase):
+    def test_domain(self):
+        print 'DomainPair:', DomainPair(0, 0, LEFT, True)
+    
+    def test_modifyandpush(self):
+        for i in range(5):
+            for j in range(5):
+                modifyandpush(i, j, random.randint(1, 6), bool(random.randint(0,1)))
+        
+        print '-*- modifyandpush -*-'
+        pprint(domain)
+        pprint(relation)
+        pprint(domstack)
+    
+    def test_popdomains(self):
+        pair = domstack[10]
+        popdomains(pair)
+        
+        print '-*- popdomains -*-'
+        print pair
+        pprint(domstack)
+        
+        

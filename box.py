@@ -10,6 +10,6 @@ class Box:
         x = self.x; self.x = self.y; self.y = self.z; self.z = x;
 
     def __repr__(self):
-        return '%sx%sx%s' % (self.w, self.d, self.h)
+        return '%sx%sx%s (%s, %s, %s)' % (self.w, self.h, self.d, self.x, self.y, self.z)
 
 class Bin(Box): pass
