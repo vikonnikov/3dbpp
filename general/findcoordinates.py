@@ -1,6 +1,6 @@
 from variables import *
 
-def findcoordinates(info, n, boxes):
+def findcoordinates(info, boxes):
     """Find coordinates of boxes according to the currently pending relations.
     In principle this can be done by topologically sorting the boxes according
     to e.g. the left-right relations, and then assigning coordinates from
@@ -16,19 +16,13 @@ def findcoordinates(info, n, boxes):
     the algorithm terminates with FALSE. Otherwise TRUE is returned, saying
     that a feasible packing exists which respects the current relations."""
 
-#   register box *g, *h;
-#   register int sum;
-#   int i, j, k, W, H, D;
-#   boolean changed;
-#   char *dom, *relij;
-#   domset *domij;
-
     W = info.W; H = info.H; D = info.D;
+    n = info.n
 
     # check if feasible, i.e., at least one choice for each relation
-    for i in range(n): 
+    for i in range(n):
         for j in range(i + 1, n):
-            if relation[i][j] != UNDEF: 
+            if relation[i][j] != UNDEF:
                 pass
             elif any(domain[i][j][LEFT:UNDEF]):
                 pass
@@ -36,15 +30,17 @@ def findcoordinates(info, n, boxes):
                 return False
     
     # now determine the coordinates
-    info.exacttopo += 1
+    # info.exacttopo += 1
     for k in range(n):
-        info.exacttopn += 1
+        # info.exacttopn += 1
         changed = False
         for i in range(n):
             gbox = boxes[i]
             for j in range(i + 1, n):
                 hbox = boxes[j]
                 rel = relation[i][j]
+
+                # print 'coords', k, i, j, gbox, hbox, rel
                 
                 if rel == UNDEF:
                     pass # do nothing

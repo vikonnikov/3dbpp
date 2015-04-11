@@ -15,8 +15,8 @@ def general_pack(info, boxes):
     n = len(boxes)
 #     n = l - f + 1
   
-    if n > info.exactn:
-        info.exactn = n
+    # if n > info.exactn:
+    #     info.exactn = n
 
     for i in range(n):
         for j in range(n):

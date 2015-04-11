@@ -8,9 +8,19 @@ class DomainPair:
     def __init__(self, i, j, relation, domain):
         self.i = i
         self.j = j
+
+        self.update(relation, domain)
+
+    def update(self, relation, domain):
         self.relation = relation
         self.domain = domain
     
     def __repr__(self):
         return 'DomainPair [%s][%s] Rel: %s Domain: %s' % \
             (self.i, self.j, self.relation, self.domain)
+
+class TaskInfo:
+    W = H = D = 10
+    def __init__(self, boxes):
+        self.n = len(boxes)
+        print 'Length:', self.n

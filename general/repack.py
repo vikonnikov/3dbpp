@@ -27,24 +27,24 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
 #     domainpair *pos;
 #     boolean feas;
 
-    if stopped:
-        return
+    # if stopped:
+    #     return
      
-    info.iter3d += 1
+    # info.iter3d += 1
     
-    if (info.iter3d == info.maxiter) and (info.maxiter != 0):
-        terminate = True
+    # if (info.iter3d == info.maxiter) and (info.maxiter != 0):
+    #     terminate = True
         
-    info.subiterat += 1
+    # info.subiterat += 1
      
-    if info.subiterat == IUNIT: 
-        info.subiterat = 0
-        info.iterat += 1
+    # if info.subiterat == IUNIT:
+    #     info.subiterat = 0
+    #     info.iterat += 1
 #         check_iterlimit(info.iterat, info.iterlimit)
 #         check_timelimit(info.timelimit)
 
-    if terminate:
-        return
+    # if terminate:
+    #     return
  
     relation[i][j] = rel
     
@@ -55,25 +55,38 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
             i1 = 0; j1 += 1;
         if relation[i1][j1] == UNDEF:
             raise Exception("Relation error %d %d\n" % (i1, j1))
+
+
  
-    feas = findcoordinates(info, n, boxes)
+    feas = findcoordinates(info, boxes)
+
+
+
+
     if not feas:
         return
  
     if (i == n-2) and (j == n-1): 
-        feasible = True
-        terminate = True
+        # feasible = True
+        # terminate = True
 #         memcpy(info.fsol, f, sizeof(box) * n) !!!
         return
- 
-#     pos = dompos !!!
+
+    if domstack:
+        dpair = domstack[-1]
+    else:
+        dpair = None
+
     feas = reducedomain(info, n, boxes);
+
+    print feas
+
     if feas:
         i += 1
         if i >= j:
             i = 0; j += 1;
         
-        bblevel += 1
+        # bblevel += 1
         rel = relation[i][j]
         
         if domain[i][j][LEFT]:
@@ -90,6 +103,7 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
             recpack(info, i, j, n, boxes, BEHIND);
         
         relation[i][j] = rel;
-        bblevel -= 1
-    
-    popdomains(pos);
+        # bblevel -= 1
+
+    if dpair:
+        popdomains(dpair)

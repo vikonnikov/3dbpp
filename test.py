@@ -11,8 +11,9 @@ from utils import choose_boxes, rotate_problem
 
 from fits.core import fits2, fits2p, fits3
 
-from general.core import DomainPair
+from general.core import TaskInfo, DomainPair
 from general.domain import modifyandpush, popdomains
+from general.general_pack import general_pack
 
 from variables import *
 from inspect import stack
@@ -28,6 +29,9 @@ class Initial:
                 random.randint(1, 10))
             self.boxes.append(box)
 
+        self.log()
+
+    def log(self):
         print 'Bin:', self.bin
         print 'Boxes:'
         pprint(self.boxes)
@@ -107,5 +111,26 @@ class TestDomain(TestCase):
         print '-*- popdomains -*-'
         print pair
         pprint(domstack)
+
+class TestGeneralPack(Initial, TestCase):
+    def setUp(self):
+        self.bin = Bin(10, 10, 10)
+        self.boxes = [
+            Box(1, 1, 2),
+            Box(2, 2, 2),
+            Box(3, 3, 3),]
+            # Box(4, 4, 4)]
+        self.info = TaskInfo(self.boxes)
+
+        self.log()
+    def test_general_pack(self):
+        general_pack(self.info, self.boxes)
+
+        self.log()
+
+        # print '-*- GeneralPack -*-'
+        # pprint(domain)
+        # pprint(relation)
+        # pprint(domstack)
         
         

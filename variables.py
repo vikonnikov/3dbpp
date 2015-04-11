@@ -1,7 +1,7 @@
 import numpy
 
 IUNIT = 1000  # scaling factor of nodes and iterat
-MAXBOXES = 10  # max number of boxes (plus one box)
+MAXBOXES = 20  # max number of boxes (plus one box)
 MAXBPP = 1000000  # max numer of iterations in 1-dim bpp
 MAXITER = 1000  # max iterations in heuristic onebin_robot
 MAXCLOSE = 16  # max level for which try_close is applied
@@ -43,6 +43,7 @@ feasible, terminate = None, None
 
 # stack of domain pairs
 domstack = []
+indexes2dpair = {}
 # domainpair domstack[STACKDEPTH];
 # domainpair *dompos, *domend; 
 
