@@ -21,15 +21,31 @@ from inspect import stack
 class Initial:
     def setUp(self):
         self.boxes = []
-        self.bin = Bin(10, 10, 10)
-        for i in range(20):
-            box = Box(
-                random.randint(1, 10),
-                random.randint(1, 10),
-                random.randint(1, 10))
+        lines = file('test.txt').readlines()
+        n, W, H, D = [int(i) for i in lines[0].split()]
+        self.bin = Bin(W, H, D)
+        # for i in range(20):
+        #     box = Box(
+        #         random.randint(1, 10),
+        #         random.randint(1, 10),
+        #         random.randint(1, 10))
+        #     self.boxes.append(box)
+        # self.boxes = [
+        #     Box(2, 2, 2),
+        #     Box(2, 2, 2),
+        #     Box(3, 3, 3),
+        #     Box(4, 4, 4),
+        #     Box(1, 1, 1),
+        #     Box(5, 3, 1),
+        #     Box(1, 1, 1),
+        #     Box(1, 2, 1),
+        # ]
+        for line in lines[1:]:
+            box = Box(*[int(i) for i in line.split()])
             self.boxes.append(box)
+            print box
 
-        self.log()
+        # self.log()
 
     def log(self):
         print 'Bin:', self.bin
