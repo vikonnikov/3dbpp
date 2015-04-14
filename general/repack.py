@@ -22,6 +22,8 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
       The recursive step selects the next pair of boxes following "i" and "j"
     and repeatedly assigns each relation from the domain to the relation 
     variable."""
+    
+    print "recpack: %d %d\n" % (i, j)
 
 #     int i1, j1;
 #     domainpair *pos;
@@ -55,14 +57,14 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
             i1 = 0; j1 += 1;
         if relation[i1][j1] == UNDEF:
             raise Exception("Relation error %d %d\n" % (i1, j1))
+        
+        print "recpack - while: %d %d\n" % (i1, j1)
 
 
  
     feas = findcoordinates(info, boxes)
-
-
-
-
+    print 'Findcoordinates Feas:', feas
+    
     if not feas:
         return
  
@@ -79,7 +81,7 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
 
     feas = reducedomain(info, n, boxes);
 
-    print feas
+    print 'Reducedomain Feas:', feas
 
     if feas:
         i += 1
@@ -91,16 +93,16 @@ def recpack(info, i, j, n, boxes, rel): # box -> box *f
         
         if domain[i][j][LEFT]:
             recpack(info, i, j, n, boxes, LEFT);
-        if domain[i][j][RIGHT]:
-            recpack(info, i, j, n, boxes, RIGHT);
-        if domain[i][j][UNDER]:
-            recpack(info, i, j, n, boxes, UNDER);
-        if domain[i][j][ABOVE]:
-            recpack(info, i, j, n, boxes, ABOVE);
-        if domain[i][j][FRONT]:
-            recpack(info, i, j, n, boxes, FRONT);
-        if domain[i][j][BEHIND]:
-            recpack(info, i, j, n, boxes, BEHIND);
+#         if domain[i][j][RIGHT]:
+#             recpack(info, i, j, n, boxes, RIGHT);
+#         if domain[i][j][UNDER]:
+#             recpack(info, i, j, n, boxes, UNDER);
+#         if domain[i][j][ABOVE]:
+#             recpack(info, i, j, n, boxes, ABOVE);
+#         if domain[i][j][FRONT]:
+#             recpack(info, i, j, n, boxes, FRONT);
+#         if domain[i][j][BEHIND]:
+#             recpack(info, i, j, n, boxes, BEHIND);
         
         relation[i][j] = rel;
         # bblevel -= 1

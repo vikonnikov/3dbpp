@@ -24,7 +24,7 @@ def modifyandpush(i, j, rel, dom):
         domstack.append(pair)
         indexes2dpair[indexes] = pair
 
-    print 'modifyandpush:', pair
+#     print 'modifyandpush:', pair
 
     if len(domstack) == STACKDEPTH:
         raise Exception("Stack filled")
@@ -33,7 +33,7 @@ def popdomains(pair):
     """Pop all relations between boxes from the stack. The stack is emptied
     downto the depth given by "pos"."""
 
-    print 'popdomains:', pair, domstack#, domstack.index(pair)
+#     print 'popdomains:', pair, domstack#, domstack.index(pair)
 
     if pair in domstack:
         i = domstack.index(pair)
@@ -56,12 +56,12 @@ def checkdomain(info, i, j, n, boxes, value):
       If the relation cannot be satisfied, it is removed from the domain
     and pushed to a stack, so that it can be restored upon backtracking."""
 
+    print "\ncheckdomain [%d][%d] Type: %d Value: %d" % (i, j, value, int(domain[i][j][value]))
+
     if domain[i][j][value] == False:
         return # not allowed in any case
     
     relation[i][j] = value
-
-    print 'checkdomain', i, j, value
 
     if findcoordinates(info, boxes) == False:
         modifyandpush(i, j, value, True)
@@ -78,7 +78,7 @@ def reducedomain(info, n, boxes):
     for i in range(0, n - 1):
         for j in range(i + 1, n - 1):
             if relation[i][j] == UNDEF:
-                print 'reducedomain', i, j
+                print 'reducedomain [%d][%d]' % (i, j)
                 checkdomain(info, i, j, n, boxes, LEFT);
                 checkdomain(info, i, j, n, boxes, RIGHT);
                 checkdomain(info, i, j, n, boxes, UNDER);

@@ -14,20 +14,21 @@ def general_pack(info, boxes):
     bblevel = 1
     n = len(boxes)
 #     n = l - f + 1
-  
+    
     # if n > info.exactn:
     #     info.exactn = n
 
     for i in range(n):
         for j in range(n):
             relation[i][j] = UNDEF
-            for k in range(LEFT, UNDEF + 1):
+            for k in range(LEFT, UNDEF):
                 domain[i][j][k] = True
-
+#                 print "Domain[%d][%d][%d]=TRUE" % (i, j, k)
+    
     domain[0][1][RIGHT ] = False
     domain[0][1][ABOVE ] = False
     domain[0][1][BEHIND] = False
-
+    
     recpack(info, 0, 0, n, boxes, UNDEF)
     
     return feasible

@@ -83,174 +83,7 @@
  * only. 
  */              
 
-#define IUNIT        1000  /* scaling factor of nodes and iterat */ 
-#define MAXBOXES      101  /* max number of boxes (plus one box) */
-#define MAXBPP    1000000  /* max numer of iterations in 1-dim bpp */
-#define MAXITER      1000  /* max iterations in heuristic onebin_robot */
-#define MAXCLOSE       16  /* max level for which try_close is applied */
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-#include <malloc.h>
-#include <time.h>  
-#include <limits.h>
-
-
-/* ======================================================================
-				   macros
-   ====================================================================== */
-
-#define TRUE  1           /* logical variables */
-#define FALSE 0
-
-#define WDIM  0           /* rotations of boxes */
-#define HDIM  1
-#define DDIM  2
-
-#define GENERAL     0     /* packing type */
-#define ROBOT       1
-
-#define LEFT   0          /* relative placements */
-#define RIGHT  1
-#define UNDER  2
-#define ABOVE  3
-#define FRONT  4
-#define BEHIND 5
-#define UNDEF  6
-#define RELMAX 8
-
-#define STACKDEPTH (MAXBOXES*MAXBOXES*RELMAX)
-
-#define VOL(i)            ((i)->w * (ptype) (i)->h * (i)->d)
-#define MINIMUM(i,j)      ((i) < (j) ? (i) : (j))
-#define MAXIMUM(i,j)      ((i) > (j) ? (i) : (j))
-#define DIF(i,j)          ((int) ((j) - (i) + 1))
-#define SWAPINT(a,b)      { register int t; t=*(a);*(a)=*(b);*(b)=t; }
-#define SWAP(a,b)         { register box t; t=*(a);*(a)=*(b);*(b)=t; }
-#define SWAPI(a,b)        { register itype t; t=(a);(a)=(b);(b)=t; }
-#define SWAPP(a,b)        { register point t; t=*(a);*(a)=*(b);*(b)=t; }
-#define DF(a,b)           ((r=(a).y-(b).y) != 0 ? r : (a).x-(b).x)
-
-
-/* ======================================================================
-				 type declarations
-   ====================================================================== */
-
-typedef short         boolean; /* logical variable      */
-typedef short         ntype;   /* number of states,bins */
-typedef short         itype;   /* can hold up to W,H,D  */
-typedef long          stype;   /* can hold up to W*H*D  */
-typedef long          ptype;   /* product multiplication */
-
-/* box record */
-typedef struct irec {
-  ntype    no;           /* box number                            */
-  itype    w;            /* box width  (x-size)                   */
-  itype    h;            /* box height (y-size)                   */
-  itype    d;            /* box depth  (z-size)                   */
-  itype    x;            /* optimal x-position                    */
-  itype    y;            /* optimal y-position                    */
-  itype    z;            /* optimal z-position                    */
-  ntype    bno;          /* bin number                            */
-  boolean  k;            /* is the box chosen?                    */
-  stype    vol;          /* volume of box                         */
-  struct irec *ref;      /* reference to original box (if necessary) */
-} box; 
-
-/* all problem information */
-typedef struct {
-  itype    W;            /* x-size of bin                         */
-  itype    H;            /* y-size of bin                         */
-  itype    D;            /* z-size of bin                         */
-  stype    BVOL;         /* volume of a bin                       */
-  ntype    n;            /* number of boxes                       */
-  boolean  packtype;     /* packing type: GENERAL or ROBOT        */
-  box      *fbox;        /* first box in problem                  */
-  box      *lbox;        /* last box in problem                   */
-  box      *fsol;        /* first box in current solution         */
-  box      *lsol;        /* last box in current solution          */
-  box      *fopt;        /* first box in optimal solution         */
-  box      *lopt;        /* last box in optimal solution          */
-  boolean  *closed;      /* for each bin indicator whether closed */
-  box      *fclosed;     /* first box in closed bins              */
-  box      *lclosed;     /* last box in closed bins               */
-  ntype    noc;          /* number of closed bins                 */
-  itype    mindim;       /* currently smallest box length         */
-  itype    maxdim;       /* currently largest box length          */
-  stype    maxfill;      /* the best filling found                */
-  int      mcut;         /* how many siblings at each node in b&b */
-
-  /* different bounds */
-  ntype    bound0;       /* Bound L_0 at root node                */
-  ntype    bound1;       /* Bound L_1 at root node                */
-  ntype    bound2;       /* Bound L_2 at root node                */
-  ntype    lb;           /* best of the above                     */
-  ntype    z;            /* currently best solution               */
-
-  /* controle of 3d filler */
-  int      maxiter;      /* max iterations in onebin_robot        */
-  int      miss;         /* number boxes not packed in onebin_robot */
-
-  /* debugging and controle information */
-  int      nodes;        /* nodes in branch-and-bound             */
-  int      iterat;       /* iterations in onebin_decision         */
-  int      subnodes;     /* nodes in branch-and-bound             */
-  int      subiterat;    /* iterations in onebin_decision         */
-  int      exfill;       /* number of calls to onebin_decision    */
-  int      iter3d;       /* iterations in onebin_robot or general */
-  int      zlayer;       /* heuristic solution layer              */
-  int      zmcut;        /* heuristic solution mcut               */
-  double   exacttopo;    /* number of topological sorts           */
-  double   exacttopn;    /* number of topological sorts           */
-  int      exactcall;    /* number of calls to exact              */
-  int      exactn;       /* largest problem for exact             */
-  double   genertime;    /* time used in onebin_general           */
-  double   robottime;    /* time used in onebin_robot             */
-  double   time;         /* computing time                        */
-  double   lhtime;       /* layer heuristic computing time        */
-  double   mhtime;       /* mcut heuristic computing time         */
-  int      didpush;      /* did the lower bound push up bound     */
-  int      maxclose;     /* max number of closed bins at any time */
-  int      nodelimit;    /* maximum number of nodes in main tree  */
-  int      iterlimit;    /* maximum number of iterations in ONEBIN*/
-  int      timelimit;    /* maximum amount of time to be used     */
-} allinfo;
-
-/* structure for greedy algorithm */
-typedef struct {
-  int      lno;          /* layer number                          */
-  int      d;            /* depth of layer                        */
-  int      bno;          /* bin no assigned to layer              */
-  int      z;            /* z level of layer within bin           */
-  int      b;            /* temporary bin number                  */
-} heurpair;
-
-/* structure for extreme points in a single bin */
-typedef struct {
-  itype    x;            /* x-coordinate                          */
-  itype    y;            /* y-coordinate                          */
-  itype    z;            /* z-coordinate                          */
-} point;
-
-/* structure for a domain pair in constraint programming */
-typedef struct {
-  int i;                 /* index of box i                        */
-  int j;                 /* index of box j                        */
-  int relation;          /* relation between the two boxes        */
-  boolean domain;        /* domain of the two boxes               */
-} domainpair;
-  
-
-/* set of domains */
-typedef char domset[RELMAX];
-typedef domset domline[MAXBOXES];
-
-/* pointer to comparison function */
-typedef int (*funcptr) (const void *, const void *); 
-
+#include "3dbpp.h"
 
 /* ======================================================================
 				  global variables
@@ -617,6 +450,7 @@ int bound_zero(allinfo *a, box *f, box *l)
   vsum = 0; 
   for (i = f, m = l+1; i != m; i++) vsum += i->vol;
   lb = (stype) ceil(vsum / (double) a->BVOL);
+  printf("vsum: %d BVOL: %d", vsum, a->BVOL);
   return lb;
 }
 
@@ -1119,6 +953,8 @@ void popdomains(domainpair *pos)
 
 boolean findcoordinates(allinfo *a, int n, box *f)
 {
+
+  printf("\n-*- findcoordinates -*-\n");
   register box *g, *h;
   register int sum;
   int i, j, k, W, H, D;
@@ -1140,22 +976,30 @@ boolean findcoordinates(allinfo *a, int n, box *f)
       dom++;        if (*dom) continue;
       dom++;        if (*dom) continue;
       dom++;        if (*dom) continue;
+
+      printf("check if feasible False");
       return FALSE;
     }
   }
 
+/*  printf("initialize coordinates\n"); */
+
   /* initialize coordinates */
   for (i = 0; i < n; i++) { g = f+i; g->x = g->y = g->z = 0; } 
-
   /* now determine the coordinates */
   a->exacttopo++;
   for (k = 0; k < n; k++) {
     a->exacttopn++;
     changed = FALSE; 
+    printf("-*- findcoordinates K=%d -*-\n", k);
     for (i = 0; i < n; i++) {
       g = f+i; j = i+1; relij = &(relation[i][j]);
+      /* printf("\n/%dx%dx%d/ ", g->w, g->h, g->d); */
+      printf("\n");
       for ( ; j < n; j++, relij++) {
         h = f+j;
+        /* printf("[%2d][%2d](%d)/%dx%dx%d/ ", i, j, *relij, h->w, h->h, h->d); */
+        printf("[%2d][%2d](%d) ", i, j, *relij);
         switch (*relij) {
           case UNDEF :
             /* do nothing */
@@ -1163,44 +1007,87 @@ boolean findcoordinates(allinfo *a, int n, box *f)
           case LEFT  : 
             sum = g->x + g->w;
             if (h->x < sum) {
-              h->x = sum; changed = TRUE; if (sum + h->w > W) return FALSE;
+              printf("L");
+              h->x = sum; changed = TRUE;
+              if (sum + h->w > W)
+              {
+            	  printf(" stop LEFT\n");
+            	  return FALSE;
+              }
             }
             break;
           case RIGHT : 
+        	printf("R");
             sum = h->x + h->w;
             if (g->x < sum) {
-              g->x = sum; changed = TRUE; if (sum + g->w > W) return FALSE;
+              g->x = sum; changed = TRUE;
+              if (sum + g->w > W)
+              {
+            	  printf(" stop RIGHT\n");
+            	  return FALSE;
+              }
             }
             break;
-          case UNDER : 
+          case UNDER :
+        	printf("U");
             sum = g->y + g->h;
             if (h->y < sum) {
-              h->y = sum; changed = TRUE; if (sum + h->h > H) return FALSE;
+              h->y = sum; changed = TRUE;
+              if (sum + h->h > H)
+              {
+            	  printf(" stop UNDER\n");
+            	  return FALSE;
+              }
             }
             break;
           case ABOVE : 
+        	  printf("A");
             sum = h->y + h->h;
             if (g->y < sum) {
-              g->y = sum; changed = TRUE; if (sum + g->h > H) return FALSE;
+              g->y = sum; changed = TRUE;
+              if (sum + g->h > H)
+              {
+            	  printf(" stop ABOVE\n");
+            	  return FALSE;
+              }
             }
             break;
-          case FRONT : 
+          case FRONT :
+        	  printf("F");
             sum = g->z + g->d;
             if (h->z < sum) {
-              h->z = sum; changed = TRUE; if (sum + h->d > D) return FALSE;
+              h->z = sum; changed = TRUE;
+              if (sum + h->d > D)
+              {
+            	  printf(" stop FRONT\n");
+            	  return FALSE;
+              }
             }
             break;
           case BEHIND: 
+        	  printf("B");
             sum = h->z + h->d;
             if (g->z < sum) {
-              g->z = sum; changed = TRUE; if (sum + g->d > D) return FALSE;
+              g->z = sum; changed = TRUE;
+              if (sum + g->d > D)
+              {
+            	  printf(" stop BEHIND\n");
+            	  return FALSE;
+              }
             }
             break;
         }
       }
     }
-    if (!changed) { return TRUE; }
+
+    if (!changed) {
+    	printf("not changed\n");
+    	return TRUE;
+    }
+    else
+    	printf("changed\n");
   }
+
   /* there must be a loop in the graph */
   return FALSE;
 }
@@ -1219,8 +1106,12 @@ boolean findcoordinates(allinfo *a, int n, box *f)
 
 void checkdomain(allinfo *a, int i, int j, int n, box *f, int value)
 {
+
+  printf("\ncheckdomain [%d][%d] Type: %d Value: %d\n", i, j, value, domain[i][j][value]);
+
   if (domain[i][j][value] == FALSE) return; /* not allowed in any case */
   relation[i][j] = value;
+
   if (findcoordinates(a, n, f) == FALSE) {
     modifyandpush(i, j, value, TRUE);
   } 
@@ -1248,6 +1139,7 @@ boolean reducedomain(allinfo *a, int n, box *f)
   for (i = 0; i < n-1; i++) {
     for (j = i+1; j < n-1; j++) {
       if (relation[i][j] == UNDEF) {
+    	printf("reducedomain [%d][%d]\n", i, j);
         checkdomain(a, i, j, n, f, LEFT);
         checkdomain(a, i, j, n, f, RIGHT);
         checkdomain(a, i, j, n, f, UNDER);
@@ -1294,7 +1186,8 @@ boolean reducedomain(allinfo *a, int n, box *f)
 
 void recpack(allinfo *a, int i, int j, int n, box *f, int rel)
 {
-  /* printf("recpack: %d %d\n", i, j); */
+  printf("recpack: %d %d\n", i, j);
+
   int i1, j1;
   domainpair *pos;
   boolean feas;
@@ -1315,9 +1208,12 @@ void recpack(allinfo *a, int i, int j, int n, box *f, int rel)
   for (i1 = 0, j1 = 0; i1 != i && j1 != j; ) {
     i1++; if (i1 >= j1) { i1 = 0; j1++; }
     if (relation[i1][j1] == UNDEF) error("relation error %d %d\n", i1, j1);
+    printf("recpack - while: %d %d\n", i1, j1);
   }  
 
-  feas = findcoordinates(a, n, f); 
+  feas = findcoordinates(a, n, f);
+  printf("Findcoordinates Feas: %d\n", feas);
+
   if (!feas) return;
 
   if ((i == n-2) && (j == n-1)) { 
@@ -1329,16 +1225,17 @@ void recpack(allinfo *a, int i, int j, int n, box *f, int rel)
 
   pos = dompos;
   feas = reducedomain(a, n, f);
+  printf("Reducedomain Feas: %d\n", feas);
   if (feas) {
     i++; if (i >= j) { i = 0; j++; }
     bblevel++;
     rel = relation[i][j];
     if (domain[i][j][LEFT ]) recpack(a, i, j, n, f, LEFT);
-    if (domain[i][j][RIGHT]) recpack(a, i, j, n, f, RIGHT);
+/*    if (domain[i][j][RIGHT]) recpack(a, i, j, n, f, RIGHT);
     if (domain[i][j][UNDER]) recpack(a, i, j, n, f, UNDER);
     if (domain[i][j][ABOVE]) recpack(a, i, j, n, f, ABOVE);
     if (domain[i][j][FRONT]) recpack(a, i, j, n, f, FRONT);
-    if (domain[i][j][BEHIND])recpack(a, i, j, n, f, BEHIND);
+    if (domain[i][j][BEHIND])recpack(a, i, j, n, f, BEHIND); */
     relation[i][j] = rel;
     bblevel--;
   }
@@ -1377,6 +1274,7 @@ boolean general_pack(allinfo *a, box *f, box *l)
       relation[i][j] = UNDEF;
       for (k = LEFT; k < UNDEF; k++) {
         domain[i][j][k] = TRUE;
+/*        printf("Domain[%d][%d][%d]=TRUE\n", i, j, k); */
       }
     }
   }

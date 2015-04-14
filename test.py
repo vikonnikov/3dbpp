@@ -21,7 +21,7 @@ from inspect import stack
 class Initial:
     def setUp(self):
         self.boxes = []
-        lines = file('test.txt').readlines()
+        lines = file('short.txt').readlines()
         n, W, H, D = [int(i) for i in lines[0].split()]
         self.bin = Bin(W, H, D)
         # for i in range(20):
@@ -43,7 +43,7 @@ class Initial:
         for line in lines[1:]:
             box = Box(*[int(i) for i in line.split()])
             self.boxes.append(box)
-            print box
+#             print box
 
         # self.log()
 
@@ -130,15 +130,16 @@ class TestDomain(TestCase):
 
 class TestGeneralPack(Initial, TestCase):
     def setUp(self):
-        self.bin = Bin(10, 10, 10)
-        self.boxes = [
-            Box(1, 1, 2),
-            Box(2, 2, 2),
-            Box(3, 3, 3),]
+        Initial.setUp(self)
+#         self.bin = Bin(10, 10, 10)
+#         self.boxes = [
+#             Box(1, 1, 2),
+#             Box(2, 2, 2),
+#             Box(3, 3, 3),]
             # Box(4, 4, 4)]
         self.info = TaskInfo(self.boxes)
-
         self.log()
+        
     def test_general_pack(self):
         general_pack(self.info, self.boxes)
 

@@ -10,11 +10,11 @@
 
 /* boolean general_pack(allinfo *a, box *f, box *l); */
 
-int readtest(box *tab, itype *W, itype *H, itype *D, char *file)
+int readtest(box *boxes, itype *W, itype *H, itype *D, char *file)
 {
   FILE *in;
   box *i;
-  int n, w, h, d;
+  int n, w, h, d, k;
 
   printf("Read from file: %s\n", file);
 
@@ -23,23 +23,26 @@ int readtest(box *tab, itype *W, itype *H, itype *D, char *file)
 
   fscanf(in,"%d %d %d %d", &n, &w, &h, &d);
   *W = w; *H = h; *D = d;
-  for (i = tab; i < tab+n; i++) {
+  for (k = 0, i = boxes; i < boxes+n; i++, k++) {
     fscanf(in,"%d %d %d", &w, &h, &d);
-    i->w = w; i->h = h; i->d = d;
-    printf("  Box: %2d %2d %2d\n", w, h, d);
+    i->w = w; i->h = h; i->d = d; i->no = k; i->vol = VOL(i);
+    printf("  Box-%d: %2d %2d %2d\n", k, w, h, d);
   }
   fclose(in);
   return n;
 }
 
-void init(allinfo *a, int n, int W, int H, int D)
+allinfo init(int n, int W, int H, int D, box *boxes)
 {
+	allinfo a;
 	box t0[MAXBOXES], t1[MAXBOXES], t2[MAXBOXES], t3[MAXBOXES];
 	boolean cl[MAXBOXES];
 
+	/* printf("  Box: %2d\n", boxes->no, boxes->w, boxes->h, boxes->d); */
+
 	a.n = n; a.W = W; a.H = H; a.D = D;
-	a.fbox     = t0;
-	a.lbox     = a.fbox + a.n - 1;
+	a.fbox     = boxes;
+	a.lbox     = boxes + a.n - 1;
 	a.fsol     = t1;
 	a.lsol     = a.fsol + a.n - 1;
 	a.fopt     = t2;
@@ -88,18 +91,30 @@ int main(int argc, char *argv[])
 	char filename[100];
 	strcpy(filename, argv[1]);
 
-	box tab[MAXBOXES];
-	int n = readtest(tab, &W, &H, &D, filename);
+	box boxes[MAXBOXES];
+	int n = readtest(boxes, &W, &H, &D, filename);
 
 	printf("Number of boxes: %d\n", n);
 
-	allinfo a;
-	init(a, n, W, H, D);
+	allinfo a = init(n, W, H, D, boxes);
 
-	printf("Bin: %d %d %d\n", W, H, D);
+	printf("FBox: %d LBox: %d\n", a.fbox->no, a.lbox->no);
 
-	printf("Bin volume: %d\n", W * H * D);
-	printf("Bin volume: %s\n", a.n);
+	a.bound0 = bound_zero(&a, a.fbox, a.lbox);
+	a.bound1 = bound_one(&a, a.fbox, a.lbox);
+	a.bound2 = bound_two(&a, a.fbox, a.lbox);
+	a.lb = a.bound2;
+
+	printf("Bin: %d %d %d Volume: %d\n", W, H, D, a.BVOL);
+	printf("L0: %d L1: %d L2: %d\n", a.bound0, a.bound1, a.bound2);
+
+/*	dfirst3_heuristic(&a); */
+	general_pack(&a, a.fbox, a.lbox);
+
+	int i;
+	  for (i = 0; i < n; i++) {
+	    printf("Box: (%d, %d, %d)\n", boxes[i].x, boxes[i].y, boxes[i].z);
+	  }
 
 	return 0;
 }

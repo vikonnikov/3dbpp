@@ -31,58 +31,80 @@ def findcoordinates(info, boxes):
     
     # now determine the coordinates
     # info.exacttopo += 1
+    print "-*- findcoordinates -*-"
+    
     for k in range(n):
         # info.exacttopn += 1
         changed = False
+        print "-*- findcoordinates K=%d -*-" % k
         for i in range(n):
             gbox = boxes[i]
+            log =''
             for j in range(i + 1, n):
                 hbox = boxes[j]
                 rel = relation[i][j]
-
+                log += '[%2d][%2d](%d) ' % (i, j, rel)
+                
                 # print 'coords', k, i, j, gbox, hbox, rel
                 
                 if rel == UNDEF:
                     pass # do nothing
                 elif rel == LEFT:
                     summ = gbox.x + gbox.w;
+                    log += 'L'
                     if hbox.x < summ:
                         hbox.x = summ; changed = True
                         if summ + hbox.w > W:
+                            log += ' stop LEFT'
                             return False
                 elif rel == RIGHT:
+                    log += 'R'
                     summ = hbox.x + hbox.w;
                     if gbox.x < summ:
                         gbox.x = summ; changed = True
                         if summ + gbox.w > W:
+                            log += ' stop RIGHT'
                             return False
                 elif rel == UNDER:
+                    log += 'U'
                     summ = gbox.y + gbox.h;
                     if hbox.y < summ:
                         hbox.y = summ; changed = True
                         if summ + hbox.h > H:
+                            log += ' stop UNDER'
                             return False
                 elif rel == ABOVE:
+                    log += 'A'
                     summ = hbox.y + hbox.h;
                     if gbox.y < summ:
                         gbox.y = summ; changed = True
                         if summ + gbox.h > H:
+                            log += ' stop ABOVE'
                             return False
                 elif rel == FRONT:
+                    log += 'F'
                     summ = gbox.z + gbox.d;
                     if hbox.z < summ:
                         hbox.z = summ; changed = True
                         if summ + hbox.d > D:
+                            log += ' stop FRONT'
                             return False
                 elif rel == BEHIND:
+                    log += 'B'
                     summ = hbox.z + hbox.d;
                     if gbox.z < summ:
                         gbox.z = summ; changed = True
                         if summ + gbox.d > D:
+                            log += ' stop BEHIND'
                             return False
-    
+            
+            print log
+            
         if not changed:
+            print 'not changed'
             return True
+        else:
+            print 'changed'
     
     # there must be a loop in the graph
     return False
