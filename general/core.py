@@ -21,6 +21,9 @@ class DomainPair:
 
 class TaskInfo:
     W = H = D = 10
-    def __init__(self, boxes):
+    def __init__(self, w, h, d, boxes):
         self.n = len(boxes)
-        print 'Length:', self.n
+        
+        self.W = w
+        self.H = h
+        self.D = d

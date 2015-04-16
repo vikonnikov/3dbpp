@@ -1,5 +1,5 @@
 import random
-from pprint import pprint
+from pprint import pprint, pformat
 from unittest import TestCase
 
 from box import Box, Bin
@@ -17,6 +17,10 @@ from general.general_pack import general_pack
 
 from variables import *
 from inspect import stack
+
+from logger import log, set_console_handler, set_file_handler
+# set_console_handler()
+set_file_handler('./py', 'w')
 
 class Initial:
     def setUp(self):
@@ -45,44 +49,44 @@ class Initial:
             self.boxes.append(box)
 #             print box
 
-        # self.log()
+        self.log()
 
     def log(self):
-        print 'Bin:', self.bin
-        print 'Boxes:'
-        pprint(self.boxes)
+        log.debug('Bin: %s', self.bin)
+        log.debug('Boxes:')
+        log.debug(pformat(self.boxes))
 
 class TestBounds(Initial, TestCase):
     def test_bound(self):
-        print 'L_0:', bound_zero(self.bin, self.boxes)
+        log.debug('L_0: %s', bound_zero(self.bin, self.boxes))
 
     def test_bound_one_x(self):
-        print 'L_1x:', bound_one_x(self.bin, self.boxes)
+        log.debug('L_1x: %s', bound_one_x(self.bin, self.boxes))
 
     def test_bound_one(self):
         self.test_bound()
-        print 'L_1:', bound_one(self.bin, self.boxes)
+        log.debug('L_1: %s', bound_one(self.bin, self.boxes))
 
     def test_bound_two_x(self):
-        print 'L_2x:', bound_two_x(self.bin, self.boxes)
+        log.debug('L_2x: %s', bound_two_x(self.bin, self.boxes))
 
     def test_bound_two(self):
         self.test_bound_one()
-        print 'L_2:', bound_two(self.bin, self.boxes)
+        log.debug('L_2: %s', bound_two(self.bin, self.boxes))
 
 class TestUtils(Initial, TestCase):
     def test_choose_boxes(self):
         w2 = self.bin.w/2
         d2 = self.bin.d/2
         boxes = choose_boxes(self.boxes, w2, d2)
-        print 'Choose boxes W > %s and D > %s' % (w2, d2)
-        pprint(boxes)
+        log.debug('Choose boxes W > %s and D > %s', w2, d2)
+        log.debug(pformat(boxes))
 
     def test_rotate_problem(self):
         rotate_problem(self.bin, self.boxes)
-        print 'Rotate problem'
-        pprint(self.bin)
-        pprint(self.boxes)
+        log.debug('Rotate problem')
+        log.debug(pformat(self.bin))
+        log.debug(pformat(self.boxes))
 
 class TestFits(TestCase):
     def setUp(self):
@@ -94,39 +98,39 @@ class TestFits(TestCase):
             setattr(self, attr, box)
             
     def test_fits2(self):
-        print fits2(
+        log.debug(fits2(
             self.ibox, self.jbox, \
             self.bin.w, self.bin.h, self.bin.d), \
-            self.ibox, self.jbox
+            self.ibox, self.jbox)
         
     def test_fits3(self):
-        print fits3(
+        log.debug(fits3(
             self.ibox, self.jbox, self.kbox, \
             self.bin.w, self.bin.h, self.bin.d, \
             GENERAL), \
-            self.ibox, self.jbox, self.kbox
+            self.ibox, self.jbox, self.kbox)
         
 class TestDomain(TestCase):
     def test_domain(self):
-        print 'DomainPair:', DomainPair(0, 0, LEFT, True)
+        log.debug('DomainPair: %s', DomainPair(0, 0, LEFT, True))
     
     def test_modifyandpush(self):
-        for i in range(5):
-            for j in range(5):
+        for i in xrange(5):
+            for j in xrange(5):
                 modifyandpush(i, j, random.randint(1, 6), bool(random.randint(0,1)))
         
-        print '-*- modifyandpush -*-'
-        pprint(domain)
-        pprint(relation)
-        pprint(domstack)
+        log.debug('-*- modifyandpush -*-')
+        log.debug(pformat(domain))
+        log.debug(pformat(relation))
+        log.debug(pformat(domstack))
     
     def test_popdomains(self):
         pair = domstack[10]
         popdomains(pair)
         
-        print '-*- popdomains -*-'
-        print pair
-        pprint(domstack)
+        log.debug('-*- popdomains -*-')
+        log.debug(pair)
+        log.debug(pformat(domstack))
 
 class TestGeneralPack(Initial, TestCase):
     def setUp(self):
@@ -137,15 +141,16 @@ class TestGeneralPack(Initial, TestCase):
 #             Box(2, 2, 2),
 #             Box(3, 3, 3),]
             # Box(4, 4, 4)]
-        self.info = TaskInfo(self.boxes)
+        w, h, d = self.bin.w, self.bin.h, self.bin.d
+        self.info = TaskInfo(w, h, d, self.boxes)
         self.log()
         
     def test_general_pack(self):
         general_pack(self.info, self.boxes)
-
+        
         self.log()
 
-        # print '-*- GeneralPack -*-'
+        # log.debug('-*- GeneralPack -*-'
         # pprint(domain)
         # pprint(relation)
         # pprint(domstack)

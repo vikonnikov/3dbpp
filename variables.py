@@ -53,11 +53,11 @@ indexes2dpair = {}
 
 # domain of each box / boolean 3d array
 domain = []
-for i in range(MAXBOXES):
+for i in xrange(MAXBOXES):
     domain.append([])
-    for j in range(MAXBOXES):
+    for j in xrange(MAXBOXES):
         domain[i].append([])
-        for k in range(RELMAX):
+        for k in xrange(RELMAX):
             domain[i][j].append(True)
 
 # current relation between two boxes / int 2d array

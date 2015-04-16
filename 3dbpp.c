@@ -896,6 +896,8 @@ void dfirst3_heuristic(allinfo *a)
 
 void modifyandpush(int i, int j, int rel, boolean dom)
 {
+  printf("modifyandpush [%d][%d]", i, j);
+
   dompos->i = i;
   dompos->j = j;
   dompos->domain = dom;
@@ -920,8 +922,10 @@ void modifyandpush(int i, int j, int rel, boolean dom)
 
 void popdomains(domainpair *pos)
 {
+  printf("popdomains [%d][%d]\n", dompos->i, dompos->j);
   for (; dompos != pos; ) {
     dompos--;
+    printf("popdomains action [%d][%d]\n", dompos->i, dompos->j);
     if (dompos->domain) {
       domain[dompos->i][dompos->j][dompos->relation] = TRUE;
     } else {
@@ -994,14 +998,16 @@ boolean findcoordinates(allinfo *a, int n, box *f)
     printf("-*- findcoordinates K=%d -*-\n", k);
     for (i = 0; i < n; i++) {
       g = f+i; j = i+1; relij = &(relation[i][j]);
-      /* printf("\n/%dx%dx%d/ ", g->w, g->h, g->d); */
+      printf("\n/%dx%dx%d/", g->w, g->h, g->d);
       printf("\n");
       for ( ; j < n; j++, relij++) {
         h = f+j;
         /* printf("[%2d][%2d](%d)/%dx%dx%d/ ", i, j, *relij, h->w, h->h, h->d); */
         printf("[%2d][%2d](%d) ", i, j, *relij);
+        printf("/%d, %d, %d/ ", h->x, h->y, h->z);
         switch (*relij) {
           case UNDEF :
+        	printf("-");
             /* do nothing */
             break;
           case LEFT  : 
@@ -1017,9 +1023,9 @@ boolean findcoordinates(allinfo *a, int n, box *f)
             }
             break;
           case RIGHT : 
-        	printf("R");
             sum = h->x + h->w;
             if (g->x < sum) {
+            	printf("R");
               g->x = sum; changed = TRUE;
               if (sum + g->w > W)
               {
@@ -1029,9 +1035,9 @@ boolean findcoordinates(allinfo *a, int n, box *f)
             }
             break;
           case UNDER :
-        	printf("U");
             sum = g->y + g->h;
             if (h->y < sum) {
+            	printf("U");
               h->y = sum; changed = TRUE;
               if (sum + h->h > H)
               {
@@ -1041,9 +1047,9 @@ boolean findcoordinates(allinfo *a, int n, box *f)
             }
             break;
           case ABOVE : 
-        	  printf("A");
             sum = h->y + h->h;
             if (g->y < sum) {
+            	printf("A");
               g->y = sum; changed = TRUE;
               if (sum + g->h > H)
               {
@@ -1053,9 +1059,9 @@ boolean findcoordinates(allinfo *a, int n, box *f)
             }
             break;
           case FRONT :
-        	  printf("F");
             sum = g->z + g->d;
             if (h->z < sum) {
+            	printf("F");
               h->z = sum; changed = TRUE;
               if (sum + h->d > D)
               {
@@ -1065,9 +1071,9 @@ boolean findcoordinates(allinfo *a, int n, box *f)
             }
             break;
           case BEHIND: 
-        	  printf("B");
             sum = h->z + h->d;
             if (g->z < sum) {
+            	printf("B");
               g->z = sum; changed = TRUE;
               if (sum + g->d > D)
               {
@@ -1076,7 +1082,10 @@ boolean findcoordinates(allinfo *a, int n, box *f)
               }
             }
             break;
+          default:
+        	  printf("*");
         }
+        printf("/%d, %d, %d/ ", h->x, h->y, h->z);
       }
     }
 
@@ -1113,6 +1122,7 @@ void checkdomain(allinfo *a, int i, int j, int n, box *f, int value)
   relation[i][j] = value;
 
   if (findcoordinates(a, n, f) == FALSE) {
+	printf("call modifyandpush\n");
     modifyandpush(i, j, value, TRUE);
   } 
 }
@@ -1150,6 +1160,8 @@ boolean reducedomain(allinfo *a, int n, box *f)
         for (k = LEFT, l = 0; k < UNDEF; k++) {
           if (domain[i][j][k]) { l++; m = k; }
         }
+
+        printf("\nreducedomain [%d][%d] l=%d\n", i, j, l);
         if (l == 0) return FALSE;
         if (l == 1) { modifyandpush(i, j, m, FALSE); }
       }
@@ -1216,11 +1228,21 @@ void recpack(allinfo *a, int i, int j, int n, box *f, int rel)
 
   if (!feas) return;
 
+
   if ((i == n-2) && (j == n-1)) { 
     feasible = TRUE;
     terminate = TRUE;
-    memcpy(a->fsol, f, sizeof(box) * n); 
+    memcpy(a->fsol, f, sizeof(box) * n);
+    printf("memcpy\n");
     return;
+  }
+
+  int m;
+  for (m=0;m<n;m++)
+  {
+	  box *b;
+	  b = f + m;
+	  printf("Box-%d, %d,%d,%d\n", b->no, b->x, b->y, b->z);
   }
 
   pos = dompos;
@@ -1230,12 +1252,36 @@ void recpack(allinfo *a, int i, int j, int n, box *f, int rel)
     i++; if (i >= j) { i = 0; j++; }
     bblevel++;
     rel = relation[i][j];
-    if (domain[i][j][LEFT ]) recpack(a, i, j, n, f, LEFT);
-/*    if (domain[i][j][RIGHT]) recpack(a, i, j, n, f, RIGHT);
-    if (domain[i][j][UNDER]) recpack(a, i, j, n, f, UNDER);
-    if (domain[i][j][ABOVE]) recpack(a, i, j, n, f, ABOVE);
-    if (domain[i][j][FRONT]) recpack(a, i, j, n, f, FRONT);
-    if (domain[i][j][BEHIND])recpack(a, i, j, n, f, BEHIND); */
+    if (domain[i][j][LEFT ])
+    {
+    	printf("recpack LEFT\n");
+    	recpack(a, i, j, n, f, LEFT);
+    }
+    if (domain[i][j][RIGHT])
+    {
+    	printf("recpack RIGHT\n");
+    	recpack(a, i, j, n, f, RIGHT);
+    }
+    if (domain[i][j][UNDER])
+    {
+    	printf("recpack UNDER\n");
+    	recpack(a, i, j, n, f, UNDER);
+    }
+    if (domain[i][j][ABOVE])
+    {
+    	printf("recpack ABOVE\n");
+    	recpack(a, i, j, n, f, ABOVE);
+    }
+    if (domain[i][j][FRONT])
+    {
+    	printf("recpack FRONT\n");
+    	recpack(a, i, j, n, f, FRONT);
+    }
+    if (domain[i][j][BEHIND])
+    {
+    	printf("recpack BEHIND\n");
+    	recpack(a, i, j, n, f, BEHIND);
+    }
     relation[i][j] = rel;
     bblevel--;
   }

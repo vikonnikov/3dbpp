@@ -18,10 +18,10 @@ def general_pack(info, boxes):
     # if n > info.exactn:
     #     info.exactn = n
 
-    for i in range(n):
-        for j in range(n):
+    for i in xrange(n):
+        for j in xrange(n):
             relation[i][j] = UNDEF
-            for k in range(LEFT, UNDEF):
+            for k in xrange(LEFT, UNDEF):
                 domain[i][j][k] = True
 #                 print "Domain[%d][%d][%d]=TRUE" % (i, j, k)
     

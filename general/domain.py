@@ -1,11 +1,14 @@
 from variables import *
 from general.core import DomainPair
 from general.findcoordinates import findcoordinates
+from logger import log
 
 def modifyandpush(i, j, rel, dom):
     """Push the relation "rel" between box i and box j to info stack. If "dom"
     is True, the relation is removed from the domain. If "dom" is False,
     the relation "rel" is imposed between boxes "i" and "j"."""
+    
+    log.debug('modifyandpush [%d][%d]', i, j)
     
     if dom:
         r = rel
@@ -33,7 +36,7 @@ def popdomains(pair):
     """Pop all relations between boxes from the stack. The stack is emptied
     downto the depth given by "pos"."""
 
-#     print 'popdomains:', pair, domstack#, domstack.index(pair)
+    log.debug('popdomains [%d][%d]', pair.i, pair.j)
 
     if pair in domstack:
         i = domstack.index(pair)
@@ -43,6 +46,8 @@ def popdomains(pair):
 
     for p in domstack[i:]:
         domstack.remove(p)
+        
+        log.debug('popdomains action [%d][%d]', pair.i, pair.j)
     
         if pair.domain:
             domain[pair.i][pair.j][pair.relation] = True
@@ -56,7 +61,7 @@ def checkdomain(info, i, j, n, boxes, value):
       If the relation cannot be satisfied, it is removed from the domain
     and pushed to a stack, so that it can be restored upon backtracking."""
 
-    print "\ncheckdomain [%d][%d] Type: %d Value: %d" % (i, j, value, int(domain[i][j][value]))
+    log.debug("\ncheckdomain [%d][%d] Type: %d Value: %d" , i, j, value, int(domain[i][j][value]))
 
     if domain[i][j][value] == False:
         return # not allowed in any case
@@ -64,6 +69,7 @@ def checkdomain(info, i, j, n, boxes, value):
     relation[i][j] = value
 
     if findcoordinates(info, boxes) == False:
+        log.debug("call modifyandpush")
         modifyandpush(i, j, value, True)
 
 def reducedomain(info, n, boxes):
@@ -75,10 +81,10 @@ def reducedomain(info, n, boxes):
     relation remains in the domain, the relation is imposed at this node
     and all descendant nodes."""
     m = 0
-    for i in range(0, n - 1):
-        for j in range(i + 1, n - 1):
+    for i in xrange(0, n - 1):
+        for j in xrange(i + 1, n - 1):
             if relation[i][j] == UNDEF:
-                print 'reducedomain [%d][%d]' % (i, j)
+                log.debug('reducedomain [%d][%d]', i, j)
                 checkdomain(info, i, j, n, boxes, LEFT);
                 checkdomain(info, i, j, n, boxes, RIGHT);
                 checkdomain(info, i, j, n, boxes, UNDER);
@@ -87,12 +93,14 @@ def reducedomain(info, n, boxes):
                 checkdomain(info, i, j, n, boxes, BEHIND);
                 relation[i][j] = UNDEF;
                 l = 0
-                for k in range(LEFT, UNDEF):
+                for k in xrange(LEFT, UNDEF):
                     if domain[i][j][k]:
                         l += 1; m = k;
-                    if l == 0:
-                        return False
-                    if l == 1:
-                        modifyandpush(i, j, m, False)
+                
+                log.debug('reducedomain [%d][%d] l=%d', i, j, l)
+                if l == 0:
+                    return False
+                if l == 1:
+                    modifyandpush(i, j, m, False)
 
     return True

@@ -1,4 +1,5 @@
 from variables import *
+from logger import log
 
 def findcoordinates(info, boxes):
     """Find coordinates of boxes according to the currently pending relations.
@@ -20,8 +21,8 @@ def findcoordinates(info, boxes):
     n = info.n
 
     # check if feasible, i.e., at least one choice for each relation
-    for i in range(n):
-        for j in range(i + 1, n):
+    for i in xrange(n):
+        for j in xrange(i + 1, n):
             if relation[i][j] != UNDEF:
                 pass
             elif any(domain[i][j][LEFT:UNDEF]):
@@ -31,80 +32,96 @@ def findcoordinates(info, boxes):
     
     # now determine the coordinates
     # info.exacttopo += 1
-    print "-*- findcoordinates -*-"
+    log.debug("-*- findcoordinates -*-")
     
-    for k in range(n):
+    for box in boxes:
+        box.reset()
+    
+    for k in xrange(n):
         # info.exacttopn += 1
         changed = False
-        print "-*- findcoordinates K=%d -*-" % k
-        for i in range(n):
+        log.debug("-*- findcoordinates K=%d -*-", k)
+        for i in xrange(n):
             gbox = boxes[i]
-            log =''
-            for j in range(i + 1, n):
+            msg = ''
+            msg += "\n/%dx%dx%d/\n" % (gbox.w, gbox.h, gbox.d)
+            for j in xrange(i + 1, n):
                 hbox = boxes[j]
                 rel = relation[i][j]
-                log += '[%2d][%2d](%d) ' % (i, j, rel)
+                msg += '[%2d][%2d](%d) ' % (i, j, rel)
+                msg += "/%d, %d, %d/ " % (hbox.x, hbox.y, hbox.z)
                 
                 # print 'coords', k, i, j, gbox, hbox, rel
                 
                 if rel == UNDEF:
+                    msg += '-'
                     pass # do nothing
                 elif rel == LEFT:
                     summ = gbox.x + gbox.w;
-                    log += 'L'
                     if hbox.x < summ:
+                        msg += 'L'
                         hbox.x = summ; changed = True
                         if summ + hbox.w > W:
-                            log += ' stop LEFT'
+                            msg += ' stop LEFT'
+                            log.debug(msg)
                             return False
                 elif rel == RIGHT:
-                    log += 'R'
                     summ = hbox.x + hbox.w;
                     if gbox.x < summ:
+                        msg += 'R'
                         gbox.x = summ; changed = True
                         if summ + gbox.w > W:
-                            log += ' stop RIGHT'
+                            msg += ' stop RIGHT'
+                            log.debug(msg)
                             return False
                 elif rel == UNDER:
-                    log += 'U'
                     summ = gbox.y + gbox.h;
                     if hbox.y < summ:
+                        msg += 'U'
                         hbox.y = summ; changed = True
                         if summ + hbox.h > H:
-                            log += ' stop UNDER'
+                            msg += ' stop UNDER'
+                            log.debug(msg)
                             return False
                 elif rel == ABOVE:
-                    log += 'A'
                     summ = hbox.y + hbox.h;
                     if gbox.y < summ:
+                        msg += 'A'
                         gbox.y = summ; changed = True
                         if summ + gbox.h > H:
-                            log += ' stop ABOVE'
+                            msg += ' stop ABOVE'
+                            log.debug(msg)
                             return False
                 elif rel == FRONT:
-                    log += 'F'
                     summ = gbox.z + gbox.d;
                     if hbox.z < summ:
+                        msg += 'F'
                         hbox.z = summ; changed = True
                         if summ + hbox.d > D:
-                            log += ' stop FRONT'
+                            msg += ' stop FRONT'
+                            log.debug(msg)
                             return False
                 elif rel == BEHIND:
-                    log += 'B'
                     summ = hbox.z + hbox.d;
                     if gbox.z < summ:
+                        msg += 'B'
                         gbox.z = summ; changed = True
                         if summ + gbox.d > D:
-                            log += ' stop BEHIND'
+                            msg += ' stop BEHIND'
+                            log.debug(msg)
                             return False
+                else:
+                    msg += '*'
+                    
+                msg += "/%d, %d, %d/ " % (hbox.x, hbox.y, hbox.z)
             
-            print log
+            log.debug(msg)
             
         if not changed:
-            print 'not changed'
+            log.debug('not changed')
             return True
         else:
-            print 'changed'
+            log.debug('changed')
     
     # there must be a loop in the graph
     return False
